@@ -261,7 +261,22 @@ def normalize_key_name(key: str) -> str:
     return " ".join(key.lower().replace("_", " ").replace("-", " ").split())
 
 
+def strip_surrounding_quotes(hotkey: str) -> str:
+    hotkey = hotkey.strip()
+    if len(hotkey) >= 2 and hotkey[0] == hotkey[-1] and hotkey[0] in ("'", '"'):
+        return hotkey[1:-1].strip()
+    return hotkey
+
+
+def format_key_strokes(keys: List[KeyStroke]) -> str:
+    return ", ".join(
+        f"scan=0x{key.scan_code:02X}, extended={key.extended}"
+        for key in keys
+    )
+
+
 def resolve_hotkey(hotkey: str) -> List[KeyStroke]:
+    hotkey = strip_surrounding_quotes(hotkey)
     keys = [normalize_key_name(part) for part in hotkey.split("+") if part.strip()]
     if not keys:
         raise ValueError("ToggleMuteKey is empty")
@@ -328,6 +343,8 @@ def press_key(key: str):
     if os.name == 'nt':
         try:
             keys = resolve_hotkey(key)
+            logging.info("Sending hotkey with SendInput: %s",
+                         format_key_strokes(keys))
             for resolved_key in keys:
                 send_key_event(resolved_key)
             time.sleep(0.05)
@@ -337,6 +354,7 @@ def press_key(key: str):
         except ValueError as exc:
             logging.warning("%s; falling back to keyboard library", exc)
 
+    logging.info("Sending hotkey with keyboard library: %s", key)
     keyboard.press(key)
     time.sleep(0.05)
     keyboard.release(key)
@@ -347,6 +365,13 @@ def main_loop():
     last_state = None
     key = str(config["config"]["ToggleMuteKey"])
     poll_interval = float(config["config"]["PollInterval"])
+    logging.info("ToggleMuteKey from config: %s", key)
+    try:
+        logging.info("Resolved ToggleMuteKey: %s",
+                     format_key_strokes(resolve_hotkey(key)))
+    except ValueError as exc:
+        logging.warning("%s; ToggleMuteKey will use keyboard library fallback",
+                        exc)
 
     logging.info("Waiting for VRChat to start.")
     while not is_running():

@@ -5,7 +5,11 @@ from cx_Freeze import setup, Executable
 packages = ["configparser", "keyboard", "zeroconf", "requests", "psutil", "openvr"]
 file_include = ["config.ini", "app.vrmanifest"]
 
-build_exe_options = {"packages": packages, "include_files": file_include}
+build_exe_options = {
+    "packages": packages,
+    "include_files": file_include,
+    "excludes": ["zeroconf._services.info"],
+}
 
 setup(
     name="VRCDiscordMute",

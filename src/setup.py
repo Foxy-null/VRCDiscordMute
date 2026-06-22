@@ -8,7 +8,6 @@ file_include = ["config.ini", "app.vrmanifest"]
 build_exe_options = {
     "packages": packages,
     "include_files": file_include,
-    "excludes": ["zeroconf._services.info"],
 }
 
 setup(

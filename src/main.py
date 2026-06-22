@@ -292,8 +292,12 @@ def send_key_event(key: KeyStroke, key_up: bool = False):
 
 def resource_path(relative_path):
     """Gets absolute path from relative path"""
-    base_path = getattr(sys, '_MEIPASS', os.path.dirname(
-        os.path.abspath(__file__)))
+    if hasattr(sys, '_MEIPASS'):
+        base_path = sys._MEIPASS
+    elif getattr(sys, 'frozen', False):
+        base_path = os.path.dirname(sys.executable)
+    else:
+        base_path = os.path.dirname(os.path.abspath(__file__))
     return os.path.join(base_path, relative_path)
 
 
@@ -377,7 +381,10 @@ def main_loop():
 
 if __name__ == "__main__":
     config = configparser.ConfigParser()
-    config.read(resource_path('config.ini'))
+    config_path = resource_path('config.ini')
+    read_files = config.read(config_path)
+    if not read_files or not config.has_section("config"):
+        raise FileNotFoundError(f"Could not read config file: {config_path}")
     appmanifest_path = resource_path(config["config"]["AppManifestFile"])
 
     # Init openvr

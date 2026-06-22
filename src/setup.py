@@ -3,7 +3,10 @@ from cx_Freeze import setup, Executable
 # Dependencies are automatically detected, but it might need fine tuning.
 # "packages": ["os"] is used as example only
 packages = ["configparser", "keyboard", "zeroconf", "requests", "psutil", "openvr"]
-file_include = ["config.ini", "app.vrmanifest"]
+file_include = [
+    ("config.ini", "config.ini"),
+    ("app.vrmanifest", "app.vrmanifest"),
+]
 
 build_exe_options = {
     "packages": packages,
